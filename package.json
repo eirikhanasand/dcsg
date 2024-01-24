@@ -1,7 +1,7 @@
 {
-    "name": "tekkom-bot",
+    "name": "dcsg-bot",
     "version": "1.0.0",
-    "description": "TekKom Bot",
+    "description": "dcsg bot",
     "main": "src/app.js",
     "type": "module",
     "scripts": {
