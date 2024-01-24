@@ -1,0 +1,6 @@
+version: '1'
+services:
+  your-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
