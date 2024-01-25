@@ -10,6 +10,7 @@ let messageID = '';
 export const data = new SlashCommandBuilder()
     .setName('monitor')
     .setDescription('Monitors server status');
+
 /**
  * Executes the setup command passed from Discord
  * @param {*} message Message initiating the command, passed by Discord
