@@ -1,5 +1,5 @@
 import { REST, Routes } from 'discord.js'
-import config from '../config.json' assert { type: "json"}
+import config from '../.config.js'
 import { readdirSync } from 'fs'
 import { fileURLToPath } from 'url'
 import { join, dirname } from 'path'
@@ -52,9 +52,9 @@ const rest = new REST({ version: '10' }).setToken(token);
         const data = await rest.put(
             Routes.applicationGuildCommands(clientId, guildId),
             { body: commands }
-        )
+        ) as RestData[]
 
-        console.log(`Successfully reloaded ${data.length} application (/) commands.`)
+        console.log(`Successfully reloaded ${data?.length || 0} application (/) commands.`)
     } catch (error) {
         console.error(error)
     }

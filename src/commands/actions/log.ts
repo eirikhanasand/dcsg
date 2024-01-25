@@ -1,14 +1,11 @@
-import { SlashCommandBuilder } from 'discord.js'
+import { ChatInputCommandInteraction, InteractionResponse, Message, SlashCommandBuilder, TextBasedChannel } from 'discord.js'
 import pty from 'node-pty'
-import config from '../../../config.json' assert { type: "json" }
+import config from '../../../.config.js'
+import { servers, services } from '../../content/log.js'
 
-const servers = [
-    { name: 'manager', state: 0 }, 
-    { name: 'db1', state: 0 }, 
-    { name: 'ww1', state: 0 }, 
-    { name: 'ww2', state: 0 }, 
-    { name: 'balancer', state: 0 }
-]
+// import client
+
+let messageID = ''
 
 /**
  * Builds a new slash command with the given name, description and options
@@ -21,10 +18,11 @@ export const data = new SlashCommandBuilder()
  * Executes the setup command passed from Discord
  * @param {*} message Message initiating the command, passed by Discord
  */
-export async function execute(message) {
-    await message.reply({content: "Starting...", ephemeral: true})
-
-    monitor(message)
+export async function execute(message: ChatInputCommandInteraction) {
+    await message.reply("Fetching initial status...")
+    messageID = message.channel?.lastMessageId || ''
+    console.log("here", message.channel)
+    monitor(message.channel as TextBasedChannel)
 }
 
 function ping() {
@@ -33,10 +31,10 @@ function ping() {
     }
 }
 
-function spawn(index) {
+function spawn(index: number) {
     const terminal = pty.spawn('bash', [], {
         name: 'xterm-color',
-        cols: 2000,
+        cols: 400,
         rows: 100,
         cwd: process.cwd(),
         env: process.env,
@@ -49,7 +47,7 @@ function spawn(index) {
     check(index, terminal)
 }
 
-function check(index, terminal) {
+function check(index: number, terminal: pty.IPty) {
     const currentServer = servers[index]
     let statusChecked = false
 
@@ -78,25 +76,47 @@ function check(index, terminal) {
                 currentServer.state -= 10
             }
         }
-    }, 5000)
+    }, 8000)
 }
 
-function log(message) {
+async function log(channel: TextBasedChannel) {
     let longest = 0
+    let string = '```js\n'
+
     for (const server of servers) {
         if (server.name.length > longest) longest = server.name.length
     }
 
     for (const server of servers) {
         if (server.state >= 0) {
-            message.channel.send(`${server.name}:${tab(longest, server.name.length)}UP    ${server.state}s`)
+            string += `${server.name}:${tab(longest, server.name.length)}✅ UP    ${server.state}s\n`
         } else {
-            message.channel.send(`${server.name}:${tab(longest, server.name.length)}DOWN ${server.state}s @spam`)
+            string += `${server.name}:${tab(longest, server.name.length)}❌ DOWN ${server.state}s\n`
+            // for krise
+            // message.channel.send("@everyone")
+            // for restarts
+            // message.channel.send("@here")
+        }
+    }
+
+    string += '```'
+
+    try {
+        // channel.edit(string)
+        // console.log(channel.fetch, messageID)
+        // const message = await channel.fetch(messageID)
+        // console.log(messageID)
+        // await message.edit({ content: string })
+    } catch (error) {
+        console.log(error)
+        channel.send({ content: string })
+        if (channel?.lastMessageId) {
+            messageID = channel.lastMessageId
         }
     }
 }
 
-function tab(longest, length) {
+function tab(longest: number, length: number) {
     let string = ''
     const tabs = (longest - length) / 4
 
@@ -106,13 +126,17 @@ function tab(longest, length) {
         string += '\t'
     }
 
+    for (let i = 0; i < (longest - length) % 4; i++) {
+        string += ' '
+    }
+
     return string
 }
 
-async function monitor(message) {
+async function monitor(channel: TextBasedChannel) {
     while (true) {
         ping()
         await new Promise((r) => setTimeout(r, 10000))
-        log(message)
+        log(channel)
     }
 }

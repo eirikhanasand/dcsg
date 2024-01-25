@@ -2,7 +2,8 @@ import { readdirSync } from 'fs'
 import { fileURLToPath } from 'url'
 import { join, dirname } from 'path'
 import { Client, Collection, Events, GatewayIntentBits } from 'discord.js'
-import config from '../config.json' assert { type: "json" }
+import config from '../.config.js'
+import { ClientWithCommands } from '../interfaces.js'
 
 const token = config.token
 
@@ -14,26 +15,8 @@ const client = new Client({ intents: [
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.MessageContent,
     GatewayIntentBits.GuildMessageReactions,
-    GatewayIntentBits.GuildModeration
-] })
-
-client.commands = new Collection()
-const foldersPath = join(__dirname, 'commands')
-const commandFolders = readdirSync(foldersPath)
-
-for (const folder of commandFolders) {
-	const commandsPath = join(foldersPath, folder)
-	const commandFiles = readdirSync(commandsPath).filter(file => file.endsWith('.js'))
-	for (const file of commandFiles) {
-		const filePath = join(commandsPath, file)
-        const command = await import(filePath)
-		if ('data' in command && 'execute' in command) {
-			client.commands.set(command.data.name, command)
-		} else {
-			console.log(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`)
-		}
-	}
-}
+    GatewayIntentBits.GuildModeration,
+] }) as ClientWithCommands
 
 client.once(Events.ClientReady, () => {
     // Restarts role listeners after restart
@@ -57,6 +40,5 @@ client.on(Events.InteractionCreate, async message => {
 })
 
 client.login(token)
-
 
 export default client
