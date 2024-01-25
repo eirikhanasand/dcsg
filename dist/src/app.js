@@ -1,10 +1,7 @@
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
 import { Client, Events, GatewayIntentBits } from 'discord.js';
 import config from '../.config.js';
+import getCommands from './commands.js';
 const token = config.token;
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 const client = new Client({ intents: [
         GatewayIntentBits.Guilds,
         GatewayIntentBits.GuildMessages,
@@ -16,6 +13,7 @@ client.once(Events.ClientReady, () => {
     // Restarts role listeners after restart
     console.log("Ready!");
 });
+await getCommands(client);
 client.on(Events.InteractionCreate, async (message) => {
     if (!message.isChatInputCommand())
         return;

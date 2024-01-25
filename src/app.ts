@@ -1,14 +1,8 @@
-import { readdirSync } from 'fs'
-import { fileURLToPath } from 'url'
-import { join, dirname } from 'path'
 import { Client, Collection, Events, GatewayIntentBits } from 'discord.js'
 import config from '../.config.js'
 import { ClientWithCommands } from '../interfaces.js'
-
+import getCommands from './commands.js'
 const token = config.token
-
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
 
 const client = new Client({ intents: [
     GatewayIntentBits.Guilds,
@@ -24,10 +18,12 @@ client.once(Events.ClientReady, () => {
     console.log("Ready!")
 })
 
+await getCommands(client)
+
 client.on(Events.InteractionCreate, async message => {
 	if (!message.isChatInputCommand()) return
-
-	const command = client.commands.get(message.commandName)
+    
+	const command = client.commands.get(message.commandName) as any
 
 	if (!command) return
 
