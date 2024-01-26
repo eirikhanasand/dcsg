@@ -11,7 +11,7 @@ let messageID = '';
  * Builds a new slash command with the given name, description and options
  */
 export const data = new SlashCommandBuilder()
-    .setName('boo')
+    .setName('monitor')
     .setDescription('Monitors server status');
 /**
  * Executes the setup command passed from Discord
@@ -51,12 +51,15 @@ function spawn(index, service) {
 function check(index, terminal) {
     const currentServer = servers[index];
     let statusChecked = false;
-    if (index)
-        terminal.write(`${config.connect}\r`);
-    terminal.write(`${index == 0 ? config.connect : currentServer.name}\r`);
-    terminal.write(`systemctl is-active ${currentServer.name}.service\r`);
+    terminal.write(`${config.connect}\r`);
+    if (index) {
+        terminal.write(`${currentServer.name}\r`);
+    }
+    else {
+        terminal.write(`systemctl is-active ${currentServer.name}.service\r`);
+    }
     terminal.onData((data) => {
-        if (!statusChecked && data.includes('inactive')) {
+        if (!statusChecked && data.includes('Welcome to Ubuntu') || data.includes('inactive')) {
             statusChecked = true;
         }
     });
@@ -94,10 +97,16 @@ function checkService(index, terminal) {
     setTimeout(() => {
         terminal.kill();
         if (!index) {
-            currentServer.state = regexUcStatus(log);
+            const status = regexUcStatus(log);
+            if (status != 'unknown') {
+                currentServer.state = status;
+            }
         }
         else {
-            currentServer.state = processReport(log);
+            const service = processReport(log);
+            if (service.includes('result')) {
+                currentServer.state = service;
+            }
         }
     }, 5000);
 }
@@ -121,19 +130,22 @@ async function log(message) {
         }
     }
     string += '```';
+    const status = services[0].state;
+    const report = services[1].state;
+    const server = allUp();
     const embed = new EmbedBuilder()
-        .setTitle('Report')
-        .setDescription('Status report')
+        .setTitle(`Status ${overAllStatus() ? '✅' : '❌'}`)
+        .setDescription('Weather report')
         .setColor("#000000")
         .setTimestamp()
-        .addFields({ name: "**Status**", value: JSON.stringify(services[0].state), inline: true }, { name: "**Report**", value: JSON.stringify(services[1].state), inline: true }, { name: "**Servers**", value: string, inline: false });
+        .addFields({ name: `**${status.includes('DOWN') ? '❌' : status.length > 4 ? '✅' : '🔁'} Status**`, value: status.length > 4 ? `\`\`\`jsx\n${status}\n\`\`\`` : `\`\`\`jsx\nPending...\n\`\`\``, inline: true }, { name: `**${report.toLowerCase().includes('page is considered down') ? '❌' : report.length > 4 ? '✅' : '🔁'} Report**`, value: report.length > 4 ? `\`\`\`jsx\n${report}\n\`\`\`` : `\`\`\`jsx\nPending...\n\`\`\``, inline: true }, { name: `**${server.upCount === server.total ? '✅' : '❌'} Servers ${server.upCount}/${server.total}**`, value: string, inline: false });
     try {
         const lastID = message.channel?.lastMessageId || '';
         const msg = await message.channel?.messages.fetch(lastID);
-        msg?.edit({ embeds: [embed] });
+        msg?.edit({ content: '', embeds: [embed] });
     }
     catch (error) {
-        message.channel?.send({ embeds: [embed] });
+        message.channel?.send({ content: '', embeds: [embed] });
     }
 }
 async function monitor(message) {
@@ -142,4 +154,25 @@ async function monitor(message) {
         await new Promise((r) => setTimeout(r, 10000));
         log(message);
     }
+}
+function allUp() {
+    let upCount = 0;
+    for (let i = 0; i < servers.length; i++) {
+        if (servers[i].state > 0) {
+            upCount++;
+        }
+    }
+    return { total: servers.length, upCount };
+}
+function overAllStatus() {
+    const status = services[0].state;
+    const report = JSON.stringify(services[1].state);
+    const server = allUp();
+    if (status.includes('DOWN'))
+        return false;
+    if (report.toLowerCase().includes('page is considered down'))
+        return false;
+    if (server.upCount < server.total)
+        return false;
+    return true;
 }

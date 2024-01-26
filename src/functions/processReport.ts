@@ -1,8 +1,12 @@
 import interestingFields from "../content/interestingFields.js"
 import keyFields from "../content/keyFields.js"
+import splitObject from "./splitObject.js"
 
-export default function processReport(raw: string) {
-    const {keys, values} = regexUcReport(raw)
+const Keys = [] as string[]
+const Values = [] as string[]
+
+export default function processReport(raw: string): string {
+    splitObject(raw, Keys, Values)
 
     let errors = 0
     let connections = 0
@@ -10,53 +14,71 @@ export default function processReport(raw: string) {
     let reply_size = 0
     let favorite: FlattenedObject = {}
 
-    keys.forEach((key: string, index: number) => {
+    Keys.forEach((key: string, index: number) => {
         if (interestingFields.includes(key)) {
             if (keyFields.includes(key)) {
-                favorite[key] = values[index]
+                favorite[key] = Values[index]
             }
 
-            if (key.includes('error') && Number(values[index]) > 0) {
-                favorite[key] = values[index]
-                errors += Number(values[index])
+            if (key.includes('error') && Number(Values[index]) > 0) {
+                favorite[key] = Values[index]
+                errors += Number(Values[index])
                 favorite.errors = errors
             }
 
             if (key === 'requests') {
-                requests += Number(values[index])
+                requests += Number(Values[index])
             }
 
             if (key === 'connections') {
-                connections += Number(values[index])
+                connections += Number(Values[index])
             }
 
             if (key.includes('reply_size')) {
-                reply_size += Number(values[index])
+                reply_size += Number(Values[index])
             }
 
-            if (key === 'rate' && Number(values[index]) < 2) {
-                favorite.rate = values[index]
+            if (key === 'rate' && Number(Values[index]) < 2) {
+                favorite.rate = Values[index]
+            }
+
+            if (key === 'bonus_reward' && Number(Values[index]) > 0) {
+                favorite.bonus_reward = Values[index]
+            }
+
+            if (key === 'result') {
+                const fields = Values[index]
+                const newLine = fields.replace(/\\n/g, '\n')
+                const reward = newLine.replace('Reward', '\nReward')
+                const status = reward.replace('Page is', 'Status: Page is')
+                const splits = status.split('\n')
+
+                splits.forEach((split) => {
+                    const complete = split.split(':')
+                    if (complete[0] && complete[1]) {
+                        Keys.push(complete[0])
+                        Values.push(complete[1])
+                    }
+                })                
             }
         }
     })
 
-    favorite.reply_size = reply_size
-    favorite.unhandledRequests = requests - connections
-
-    console.log("fav", favorite)
-    return favorite
-}
-
-function regexUcReport(data: string): NestedObject {
-    const keys = []
-    const values = []
-    const regex = /"([^"]*)": "([^"]*)"/g
-    let match
-
-    while ((match = regex.exec(data)) !== null) {
-        keys.push(match[1])
-        values.push(match[2])
+    if (reply_size) {
+        favorite.reply_size = reply_size
     }
 
-    return { keys, values }
+    if (requests != connections) {
+        favorite.unhandledRequests = requests - connections
+    }
+
+    const keys = Object.keys(favorite)
+    const values = Object.values(favorite)
+    let string = ''
+
+    for (let i = 0; i < keys.length; i++) {
+        string += `${keys[i]}: ${values[i]}\n`
+    }
+
+    return string
 }

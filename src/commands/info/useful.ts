@@ -5,8 +5,8 @@ export const data = new SlashCommandBuilder()
     .setDescription('Useful commands')
 export async function execute(message: Message) {
     const embed = new EmbedBuilder()
-        .setTitle('Registry')
-        .setDescription('Guide on how to use our registry')
+        .setTitle('Useful')
+        .setDescription('Useful commands')
         .setColor("#fd8738")
         .setTimestamp()
         .addFields(

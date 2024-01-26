@@ -1,24 +1,23 @@
+import stripAnsi from 'strip-ansi';
 export default function regexUcStatus(data) {
-    const regex = /144\n([\s\S]*?)ubuntu/;
-    const ucstatus = data.match(regex);
+    const regex = /UPTIME CHALLENGE([\s\S]*?)ubuntu/;
+    const ucstatus = stripAnsi(data).match(regex);
     const newline = /\n/;
     let status = '';
-    let down = false;
-    console.log("ucstatus", ucstatus);
     if (ucstatus) {
         const lines = ucstatus[1].split(newline);
-        lines.forEach((line) => {
-            if (line == 'Report: ') {
+        lines.forEach((line, index) => {
+            if ((index < 4) || index === 8 || index > 15) {
                 return;
             }
-            if (line.includes('Page') && line.includes('down')) {
-                down = true;
+            if (line == 'Report: ') {
+                return;
             }
             if (line) {
                 status += `${line}\n`;
             }
         });
-        return { status: status, down };
+        return status.replace('Reward', '\nReward');
     }
-    return { status: 'unknown', down: false };
+    return 'unknown';
 }
