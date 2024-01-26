@@ -121,7 +121,7 @@ function checkService(index: number, terminal: pty.IPty) {
         } else {
             const service = processReport(log)
 
-            if (service.includes('result')) {
+            if (service) {
                 currentServer.state = service
             }
         }

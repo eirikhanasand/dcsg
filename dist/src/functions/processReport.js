@@ -42,10 +42,13 @@ export default function processReport(raw) {
                 const status = reward.replace('Page is', 'Status: Page is');
                 const splits = status.split('\n');
                 splits.forEach((split) => {
-                    const complete = split.split(':');
-                    if (complete[0] && complete[1]) {
-                        Keys.push(complete[0]);
-                        Values.push(complete[1]);
+                    const download = split.replace(/time to donwload/g, 'Time to download');
+                    const streak = download.replace(/Uptime streak /, 'Bonus: Uptime streak ');
+                    const index = streak.indexOf(':');
+                    const key = streak.slice(0, index);
+                    const value = streak.slice(index + 1);
+                    if (key && value) {
+                        favorite[key] = value;
                     }
                 });
             }
