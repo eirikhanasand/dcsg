@@ -44,7 +44,8 @@ export default function processReport(raw) {
                 splits.forEach((split) => {
                     const download = split.replace(/time to donwload/g, 'Time to download');
                     const streak = download.replace(/Uptime streak /, 'Bonus: Uptime streak ');
-                    const index = streak.indexOf(':');
+                    const bonus = streak.replace(/( Need 500 or more for bonus )/, '');
+                    const index = bonus.indexOf(':');
                     const key = streak.slice(0, index);
                     const value = streak.slice(index + 1);
                     if (key && value) {

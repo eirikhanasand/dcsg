@@ -4,7 +4,7 @@
         "forceConsistentCasingInFileNames": true,
         "module": "nodenext",
         "moduleResolution": "nodenext",
-        "outDir": "./dist",
+        "outDir": "dist",
         "strict": true,
         "target": "es2022",
     },

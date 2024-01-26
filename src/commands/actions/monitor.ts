@@ -5,9 +5,12 @@ import { servers, services } from '../../content/log.js'
 import tab from '../../functions/tab.js'
 import regexUcStatus from '../../functions/regexUcStatus.js'
 import processReport from '../../functions/processReport.js'
+import alert from '../../functions/alert.js'
+import log from '../../functions/log.js'
 
 let channelID = ''
 let messageID = ''
+let activeIncident = false
 
 /**
  * Builds a new slash command with the given name, description and options
@@ -95,7 +98,7 @@ function check(index: number, terminal: pty.IPty) {
 }
 
 function checkService(index: number, terminal: pty.IPty) {
-    let log = ''
+    let post = ''
     const currentServer = services[index]
 
     terminal.write(`${config.connect}\r`)
@@ -107,19 +110,19 @@ function checkService(index: number, terminal: pty.IPty) {
     terminal.write(`${currentServer.service}\r`)
 
     terminal.onData((data) => {
-        log += data
+        post += data
     })
 
     setTimeout(() => {
         terminal.kill()
         if (!index) {
-            const status = regexUcStatus(log)
+            const status = regexUcStatus(post)
 
             if (status != 'unknown') {
                 currentServer.state = status
             }
         } else {
-            const service = processReport(log)
+            const service = processReport(post)
 
             if (service) {
                 currentServer.state = service
@@ -129,7 +132,7 @@ function checkService(index: number, terminal: pty.IPty) {
     }, 5000)
 }
 
-async function log(message: ChatInputCommandInteraction) {
+async function post(message: ChatInputCommandInteraction) {
     let longest = 0
     let string = '```js\n'
 
@@ -142,10 +145,6 @@ async function log(message: ChatInputCommandInteraction) {
             string += `${server.name}:${tab(longest, server.name.length)}✅ UP    ${server.state}s\n`
         } else {
             string += `${server.name}:${tab(longest, server.name.length)}❌ DOWN ${server.state}s\n`
-            // for krise
-            // message.channel.send("@everyone")
-            // for restarts
-            // message.channel.send("@here")
         }
     }
 
@@ -154,16 +153,33 @@ async function log(message: ChatInputCommandInteraction) {
     const status = services[0].state
     const report = services[1].state
     const server = allUp()
+    const overall = overAllStatus()
+    const embedStatus = status.length > 4 ? `\`\`\`jsx\n${status}\n\`\`\`` : `\`\`\`jsx\nPending...\n\`\`\``
+    const reportStatus = report.length > 4 ? `\`\`\`jsx\n${report}\n\`\`\`` : `\`\`\`jsx\nPending...\n\`\`\``
+    const statusName = `**${status.includes('DOWN') ? '❌' : status.length > 4 ? '✅': '🔁'} Status**`
+    const reportName = `**${report.includes('considered down') ? '❌' : report.length > 4 ? '✅': '🔁'} Report**`
+    const serverName = `**${server.upCount === server.total ? '✅' : '❌'} Servers ${server.upCount}/${server.total}**`
+
     const embed = new EmbedBuilder()
-        .setTitle(`Status ${overAllStatus() ? '✅' : '❌'}`)
+        .setTitle(`Status ${overall ? '✅' : '❌'}`)
         .setDescription('Weather report')
         .setColor("#000000")
         .setTimestamp()
         .addFields(
-            {name: `**${status.includes('DOWN') ? '❌' : status.length > 4 ? '✅': '🔁'} Status**`, value: status.length > 4 ? `\`\`\`jsx\n${status}\n\`\`\`` : `\`\`\`jsx\nPending...\n\`\`\``, inline: true},
-            {name: `**${report.toLowerCase().includes('page is considered down') ? '❌' : report.length > 4 ? '✅': '🔁'} Report**`, value: report.length > 4 ? `\`\`\`jsx\n${report}\n\`\`\`` : `\`\`\`jsx\nPending...\n\`\`\``, inline: true},
-            {name: `**${server.upCount === server.total ? '✅' : '❌'} Servers ${server.upCount}/${server.total}**`, value: string, inline: false},
+            {name: statusName, value: embedStatus, inline: true},
+            {name: reportName, value: reportStatus, inline: true},
+            {name: serverName, value: string, inline: false},
         )
+    
+    if (!overall) {
+        log(message, embed, activeIncident)
+        if (!activeIncident) {
+            alert(message, embed)
+        }
+        activeIncident = true;
+    } else {
+        activeIncident = false;
+    }
 
     try {
         const lastID = message.channel?.lastMessageId || ''
@@ -178,7 +194,7 @@ async function monitor(message: ChatInputCommandInteraction) {
     while (true) {
         ping()
         await new Promise((r) => setTimeout(r, 10000))
-        log(message)
+        post(message)
     }
 }
 
