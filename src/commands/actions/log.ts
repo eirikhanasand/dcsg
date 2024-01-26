@@ -1,17 +1,19 @@
-import { ChatInputCommandInteraction, InteractionResponse, Message, SlashCommandBuilder, TextBasedChannel } from 'discord.js'
+import { ChatInputCommandInteraction, EmbedBuilder, SlashCommandBuilder } from 'discord.js'
 import pty from 'node-pty'
 import config from '../../../.config.js'
 import { servers, services } from '../../content/log.js'
+import tab from '../../functions/tab.js'
+import regexUcStatus from '../../functions/regexUcStatus.js'
+import processReport from '../../functions/processReport.js'
 
-// import client
-
+let channelID = ''
 let messageID = ''
 
 /**
  * Builds a new slash command with the given name, description and options
  */
 export const data = new SlashCommandBuilder()
-    .setName('monitor')
+    .setName('boo')
     .setDescription('Monitors server status')
 
 /**
@@ -20,18 +22,22 @@ export const data = new SlashCommandBuilder()
  */
 export async function execute(message: ChatInputCommandInteraction) {
     await message.reply("Fetching initial status...")
-    messageID = message.channel?.lastMessageId || ''
-    console.log("here", message.channel)
-    monitor(message.channel as TextBasedChannel)
+    messageID = message.id
+    channelID = message.channelId
+    monitor(message)
 }
 
 function ping() {
     for (let i = 0; i < servers.length; i++) {
         spawn(i)
     }
+
+    for (let i = 0; i < services.length; i++) {
+        spawn(i, true)
+    }
 }
 
-function spawn(index: number) {
+function spawn(index: number, service?: boolean) {
     const terminal = pty.spawn('bash', [], {
         name: 'xterm-color',
         cols: 400,
@@ -42,6 +48,11 @@ function spawn(index: number) {
 
     if (!terminal) {
         console.error("Failed to start virtual terminal.")
+    }
+
+    if (service) {
+        checkService(index, terminal)
+        return
     }
 
     check(index, terminal)
@@ -79,7 +90,34 @@ function check(index: number, terminal: pty.IPty) {
     }, 8000)
 }
 
-async function log(channel: TextBasedChannel) {
+function checkService(index: number, terminal: pty.IPty) {
+    let log = ''
+    const currentServer = services[index]
+
+    terminal.write(`${config.connect}\r`)
+
+    if (currentServer.host != 'manager') {
+        terminal.write(`${currentServer.host}\r`)
+    }
+
+    terminal.write(`${currentServer.service}\r`)
+
+    terminal.onData((data) => {
+        log += data
+    })
+
+    setTimeout(() => {
+        terminal.kill()
+        if (!index) {
+            currentServer.state = regexUcStatus(log)
+        } else {
+            currentServer.state = processReport(log)
+        }
+        
+    }, 5000)
+}
+
+async function log(message: ChatInputCommandInteraction) {
     let longest = 0
     let string = '```js\n'
 
@@ -101,42 +139,30 @@ async function log(channel: TextBasedChannel) {
 
     string += '```'
 
+    const embed = new EmbedBuilder()
+        .setTitle('Report')
+        .setDescription('Status report')
+        .setColor("#000000")
+        .setTimestamp()
+        .addFields(
+            {name: "**Status**", value: JSON.stringify(services[0].state), inline: true},
+            {name: "**Report**", value: JSON.stringify(services[1].state), inline: true},
+            {name: "**Servers**", value: string, inline: false},
+        )
+
     try {
-        // channel.edit(string)
-        // console.log(channel.fetch, messageID)
-        // const message = await channel.fetch(messageID)
-        // console.log(messageID)
-        // await message.edit({ content: string })
+        const lastID = message.channel?.lastMessageId || ''
+        const msg = await message.channel?.messages.fetch(lastID)
+        msg?.edit({ embeds: [embed]})
     } catch (error) {
-        console.log(error)
-        channel.send({ content: string })
-        if (channel?.lastMessageId) {
-            messageID = channel.lastMessageId
-        }
+        message.channel?.send({ embeds: [embed]})
     }
 }
 
-function tab(longest: number, length: number) {
-    let string = ''
-    const tabs = (longest - length) / 4
-
-    if (!tabs) string = '\t'
-
-    for (let i = 0; i < tabs; i++) {
-        string += '\t'
-    }
-
-    for (let i = 0; i < (longest - length) % 4; i++) {
-        string += ' '
-    }
-
-    return string
-}
-
-async function monitor(channel: TextBasedChannel) {
+async function monitor(message: ChatInputCommandInteraction) {
     while (true) {
         ping()
         await new Promise((r) => setTimeout(r, 10000))
-        log(channel)
+        log(message)
     }
 }

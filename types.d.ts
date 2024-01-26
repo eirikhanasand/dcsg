@@ -10,4 +10,12 @@ type RestData = {
     description_localizations: unknown,
     guild_id: string
     nsfw: boolean
-  }
+}
+
+type NestedObject = {
+    [key: string]: any
+}
+
+type FlattenedObject = {
+    [key: string]: string | number | boolean
+}

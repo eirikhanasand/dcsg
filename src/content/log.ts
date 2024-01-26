@@ -7,5 +7,6 @@ export const servers = [
 ]
 
 export const services = [
-    { name: "coachroachdb", host: "db1" }
+    { host: "manager", service: "uc status", state: '' },
+    { host: "manager", service: "uc reports", state: {} }
 ]

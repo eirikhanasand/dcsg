@@ -3,6 +3,7 @@ import { Collection } from "discord.js"
 import { readdirSync } from "fs"
 import { fileURLToPath } from "url"
 import { Client } from "../interfaces.js"
+import client from "./app.js"
 
 export default async function getCommands(client: Client) {
     client.commands = new Collection()
@@ -24,4 +25,8 @@ export default async function getCommands(client: Client) {
             }
         }
     }
+}
+
+export function MyCli() {
+    return client
 }

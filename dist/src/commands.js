@@ -2,6 +2,7 @@ import { dirname, join } from "path";
 import { Collection } from "discord.js";
 import { readdirSync } from "fs";
 import { fileURLToPath } from "url";
+import client from "./app.js";
 export default async function getCommands(client) {
     client.commands = new Collection();
     const __filename = fileURLToPath(import.meta.url);
@@ -22,4 +23,7 @@ export default async function getCommands(client) {
             }
         }
     }
+}
+export function MyCli() {
+    return client;
 }

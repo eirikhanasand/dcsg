@@ -6,5 +6,6 @@ export const servers = [
     { name: 'balancer', state: 0 }
 ];
 export const services = [
-    { name: "coachroachdb", host: "db1" }
+    { host: "manager", service: "uc status", state: '' },
+    { host: "manager", service: "uc reports", state: {} }
 ];
