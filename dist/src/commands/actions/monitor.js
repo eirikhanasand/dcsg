@@ -152,7 +152,7 @@ async function post(message) {
     const embedStatus = status.length > 4 ? `\`\`\`jsx\n${status}\n\`\`\`` : `\`\`\`jsx\nPending...\n\`\`\``;
     const reportStatus = report.length > 4 ? `\`\`\`jsx\n${report}\n\`\`\`` : `\`\`\`jsx\nPending...\n\`\`\``;
     const statusName = `**${status.includes('DOWN') ? '❌' : status.length > 4 ? '✅' : '🔁'} Status**`;
-    const reportName = `**${report.includes('DOWN') ? '❌' : report.length > 4 ? '✅' : '🔁'} Report**`;
+    const reportName = `**${report.includes('DOWN') || report.includes('down,') ? '❌' : report.length > 4 ? '✅' : '🔁'} Report**`;
     const serverName = `**${server.upCount === server.total ? '✅' : '❌'} Servers ${server.upCount}/${server.total}**`;
     const embed = new EmbedBuilder()
         .setTitle(`Status ${overall ? '✅' : '❌'}`)
