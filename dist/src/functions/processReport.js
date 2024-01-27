@@ -19,6 +19,14 @@ export default function processReport(raw) {
                 favorite[key] = numify(Values[index]);
                 return;
             }
+            if (key === 'request_rate_req/s') {
+                favorite['Req / s'] = numify(Values[index]);
+                return;
+            }
+            if (key === 'request_rate_ms/req') {
+                favorite['ms / req'] = `${numify(Values[index])}s`;
+                return;
+            }
             if (key === 'bonus_reward' && Number(Values[index]) > 0) {
                 favorite.Bonus = numify(Values[index]);
                 return;
@@ -69,19 +77,16 @@ export default function processReport(raw) {
                 favorite.Uptime = `${Values[index]}%`;
                 return;
             }
-            if (key.includes('images')) {
-                return;
-            }
             if (key === 'cpu_time_system_percent') {
                 favorite['System CPU'] = `${Values[index]}`;
                 return;
             }
             if (key === 'cpu_time_system_seconds') {
-                favorite['System CPU seconds'] = `${Number(Values[index])}s`;
+                favorite['System CPU seconds'] = Values[index];
                 return;
             }
             if (key === 'cpu_time_user_seconds') {
-                favorite['CPU seconds / user'] = `${Number(Values[index])}s`;
+                favorite['CPU seconds / user'] = Values[index];
                 return;
             }
             if (key === 'cpu_time_user_percent') {
@@ -91,6 +96,9 @@ export default function processReport(raw) {
             if (key === 'time_since_last_fail') {
                 favorite['Last fail'] = `${Values[index]}s`;
                 return;
+            }
+            if (key === 'uptime_streak') {
+                favorite['Streak'] = `${Values[index]}s`;
             }
             if (key === 'result') {
                 const fields = Values[index];
@@ -106,14 +114,24 @@ export default function processReport(raw) {
                     const value = streak.slice(index + 1);
                     if (key === 'Bonus')
                         return;
+                    if (key.includes('images'))
+                        return;
+                    if (key.includes('streak'))
+                        return;
                     if (key === 'streak_bonus') {
                         favorite.Streak = numify(value);
+                    }
+                    if (key.includes('download')) {
+                        favorite['Download time'] = `${numify(value)}s`;
                     }
                     if (key === 'frontpage_count') {
                         favorite.Users = numify(value);
                     }
                     if (key.includes('frontpage')) {
                         return;
+                    }
+                    if (key.includes('since last check')) {
+                        favorite['Last check'] = `${numify(value)}s`;
                     }
                     if (value.includes('considered up')) {
                         const regex = /considered (\w+) and working, increasing 'time_up' to (\d+)/;
