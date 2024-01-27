@@ -34,7 +34,7 @@ function spawn(message) {
         virtualTerminal.onData((data) => {
             const cleanData = stripAnsiEscapeCodes(data);
             if (cleanData.trim().length && cleanData != input) {
-                message.channel?.send(cleanData);
+                message.channel?.send(cleanData.slice(0, 2000));
             }
             if (data === input)
                 input = '';
