@@ -73,19 +73,19 @@ export default function processReport(raw) {
                 return;
             }
             if (key === 'cpu_time_system_percent') {
-                favorite['System CPU'] = `${Values[index]}%`;
+                favorite['System CPU'] = `${Values[index]}`;
                 return;
             }
             if (key === 'cpu_time_system_seconds') {
-                favorite['CPU seconds'] = `${Values[index]}s`;
+                favorite['System CPU seconds'] = `${Number(Values[index])}s`;
                 return;
             }
             if (key === 'cpu_time_user_seconds') {
-                favorite['CPU seconds / user'] = `${Values[index]}s`;
+                favorite['CPU seconds / user'] = `${Number(Values[index])}s`;
                 return;
             }
             if (key === 'cpu_time_user_percent') {
-                favorite['CPU / user'] = `${Values[index]}%`;
+                favorite['CPU / user'] = `${Values[index]}`;
                 return;
             }
             if (key === 'time_since_last_fail') {
