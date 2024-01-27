@@ -88,6 +88,10 @@ export default function processReport(raw) {
                 favorite['CPU / user'] = `${Values[index]}%`;
                 return;
             }
+            if (key === 'time_since_last_fail') {
+                favorite['Last fail'] = `${Values[index]}s`;
+                return;
+            }
             if (key === 'result') {
                 const fields = Values[index];
                 const newLine = fields.replace(/\\n/g, '\n');
