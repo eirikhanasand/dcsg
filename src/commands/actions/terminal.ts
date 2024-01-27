@@ -23,42 +23,50 @@ export async function execute(message: ChatInputCommandInteraction) {
 }
 
 function spawn(message: ChatInputCommandInteraction) {
-    const virtualTerminal = pty.spawn('bash', [], {
-        name: 'xterm-color',
-        cols: 2000,
-        rows: 100,
-        cwd: process.cwd(),
-        env: process.env
-    })
-
-    if (!virtualTerminal) {
-        message.editReply("Failed to start virtual terminal.")
-    }
-
-    virtualTerminal.write(config.connect + '\r')
-
-    virtualTerminal.onData((data) => {
-        const cleanData = stripAnsiEscapeCodes(data)
-        if (cleanData.trim().length && cleanData != input) {
-            message.channel?.send(cleanData)
+    try {
+        const virtualTerminal = pty.spawn('bash', [], {
+            name: 'xterm-color',
+            cols: 2000,
+            rows: 100,
+            cwd: process.cwd(),
+            env: process.env
+        })
+    
+        if (!virtualTerminal) {
+            message.editReply("Failed to start virtual terminal.")
         }
-
-        if (data === input) input = ''
-    });
-
-    const filter = (response: Message) => !response.author.bot
-
-    const collector = message.channel?.createMessageCollector({ filter })
-
-    if (collector) {
-        collector.on('collect', (message) => {
-            if (message.content) {
-                input = message.content
-                virtualTerminal.write(`${message.content}\r`);
+    
+        virtualTerminal.write(config.connect + '\r')
+    
+        virtualTerminal.onData((data) => {
+            const cleanData = stripAnsiEscapeCodes(data)
+            if (cleanData.trim().length && cleanData != input) {
+                message.channel?.send(cleanData)
             }
+    
+            if (data === input) input = ''
         });
-    } else {
-        console.log("Unable to setup message collector in terminal.ts")
+    
+        const filter = (response: Message) => !response.author.bot
+    
+        const collector = message.channel?.createMessageCollector({ filter })
+    
+        if (collector) {
+            collector.on('collect', (message) => {
+                if (message.content) {
+                    input = message.content
+                    virtualTerminal.write(`${message.content}\r`);
+                }
+            });
+        } else {
+            console.log("Unable to setup message collector in terminal.ts")
+        }
+    } catch (error) {
+        try {
+            message.channel?.send("Failed to start virtual terminal.")
+        } catch (innerError) {
+            console.log("Unable to start terminal.")
+        }
     }
 }
 

@@ -8,6 +8,6 @@ export async function execute(message) {
         .setDescription('Useful commands')
         .setColor("#fd8738")
         .setTimestamp()
-        .addFields({ name: "**status**", value: "uc status", inline: true }, { name: "**report**", value: "uc report", inline: true }, { name: "**htop**", value: "htop", inline: true }, { name: "**coachroach**", value: "cockroach start --insecure --store=/bfdata --listen-addr=0.0.0.0:26257 --http-addr=0.0.0.0:8080 --background --join=localhost:26257 --attrs=ram:16gb --cache=25%", inline: false });
+        .addFields({ name: "**status**", value: "uc status", inline: true }, { name: "**report**", value: "uc report", inline: true }, { name: "**htop**", value: "htop", inline: true }, { name: "**cockroach**", value: "cockroach start --insecure --store=/bfdata --listen-addr=0.0.0.0:26257 --http-addr=0.0.0.0:8080 --background --join=localhost:26257 --attrs=ram:16gb --cache=25%", inline: false }, { name: "**cockroach restart**", value: "```jsx\nsudo kill -9 $(pgrep -f cockroach\n```" });
     await message.reply({ embeds: [embed] });
 }

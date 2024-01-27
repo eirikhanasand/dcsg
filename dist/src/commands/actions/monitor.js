@@ -35,83 +35,99 @@ function ping() {
     }
 }
 function spawn(index, service) {
-    const terminal = pty.spawn('bash', [], {
-        name: 'xterm-color',
-        cols: 400,
-        rows: 100,
-        cwd: process.cwd(),
-        env: process.env,
-    });
-    if (!terminal) {
-        console.error("Failed to start virtual terminal.");
+    try {
+        const terminal = pty.spawn('bash', [], {
+            name: 'xterm-mono',
+            cols: 1000,
+            rows: 1000,
+            cwd: process.cwd(),
+            env: process.env,
+        });
+        if (!terminal) {
+            console.error("Failed to start virtual terminal.");
+        }
+        if (service) {
+            checkService(index, terminal);
+            return;
+        }
+        check(index, terminal);
     }
-    if (service) {
-        checkService(index, terminal);
-        return;
+    catch (error) {
+        console.log(`Failed to spawn terminal for ${service ? `service. ${index}` : `server ${index}.`}`);
+        return undefined;
     }
-    check(index, terminal);
 }
 function check(index, terminal) {
     const currentServer = servers[index];
-    let statusChecked = false;
-    terminal.write(`${config.connect}\r`);
-    if (index) {
-        terminal.write(`${currentServer.name}\r`);
-    }
-    else {
-        terminal.write(`systemctl is-active ${currentServer.name}.service\r`);
-    }
-    terminal.onData((data) => {
-        if (!statusChecked && data.includes('Welcome to Ubuntu') || data.includes('inactive')) {
-            statusChecked = true;
-        }
-    });
-    setTimeout(() => {
-        terminal.kill();
-        if (statusChecked) {
-            if (currentServer.state < 0) {
-                currentServer.state = 10;
-            }
-            else {
-                currentServer.state += 10;
-            }
+    try {
+        let statusChecked = false;
+        terminal.write(`${config.connect}\r`);
+        if (index) {
+            terminal.write(`${currentServer.name}\r`);
         }
         else {
-            if (currentServer.state > 0) {
-                currentServer.state = -10;
+            terminal.write(`systemctl is-active ${currentServer.name}.service\r`);
+        }
+        terminal.onData((data) => {
+            if (!statusChecked && data.includes('Welcome to Ubuntu') || data.includes('inactive')) {
+                statusChecked = true;
+            }
+        });
+        setTimeout(() => {
+            terminal.kill();
+            if (statusChecked) {
+                if (currentServer.state < 0) {
+                    currentServer.state = 10;
+                }
+                else {
+                    currentServer.state += 10;
+                }
             }
             else {
-                currentServer.state -= 10;
+                if (currentServer.state > 0) {
+                    currentServer.state = -10;
+                }
+                else {
+                    currentServer.state -= 10;
+                }
             }
-        }
-    }, 8000);
+        }, 8000);
+    }
+    catch (error) {
+        console.log(`Failed to check ${currentServer.name}\n`);
+    }
 }
 function checkService(index, terminal) {
-    let post = '';
-    const currentServer = services[index];
-    terminal.write(`${config.connect}\r`);
-    if (currentServer.host != 'manager') {
-        terminal.write(`${currentServer.host}\r`);
+    const service = services[index];
+    try {
+        let post = '';
+        terminal.write(`${config.connect}\r`);
+        if (service.host != 'manager') {
+            terminal.write(`${service.host}\r`);
+        }
+        terminal.write(`${service.service}\r`);
+        terminal.onData((data) => {
+            post += data;
+        });
+        setTimeout(() => {
+            terminal.kill();
+            if (!index) {
+                const status = regexUcStatus(post);
+                if (status != 'unknown') {
+                    service.state = status;
+                }
+            }
+            else {
+                const report = processReport(post);
+                if (report) {
+                    service.state = report;
+                }
+            }
+        }, 5000);
     }
-    terminal.write(`${currentServer.service}\r`);
-    terminal.onData((data) => {
-        post += data;
-    });
-    setTimeout(() => {
-        terminal.kill();
-        if (!index) {
-            const status = regexUcStatus(post);
-            if (status != 'unknown') {
-                currentServer.state = status;
-            }
-        }
-        else {
-            const service = processReport(post);
-            if (service) {
-                currentServer.state = service;
-            }
-        }
-    }, 5000);
+    catch (error) {
+        console.log(`Failed to check service ${service.service}`);
+    }
 }
 async function post(message) {
     let longest = 0;
@@ -136,7 +152,7 @@ async function post(message) {
     const embedStatus = status.length > 4 ? `\`\`\`jsx\n${status}\n\`\`\`` : `\`\`\`jsx\nPending...\n\`\`\``;
     const reportStatus = report.length > 4 ? `\`\`\`jsx\n${report}\n\`\`\`` : `\`\`\`jsx\nPending...\n\`\`\``;
     const statusName = `**${status.includes('DOWN') ? '❌' : status.length > 4 ? '✅' : '🔁'} Status**`;
-    const reportName = `**${report.includes('considered down') ? '❌' : report.length > 4 ? '✅' : '🔁'} Report**`;
+    const reportName = `**${report.includes('DOWN') ? '❌' : report.length > 4 ? '✅' : '🔁'} Report**`;
     const serverName = `**${server.upCount === server.total ? '✅' : '❌'} Servers ${server.upCount}/${server.total}**`;
     const embed = new EmbedBuilder()
         .setTitle(`Status ${overall ? '✅' : '❌'}`)
