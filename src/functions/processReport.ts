@@ -186,7 +186,7 @@ export default function processReport(raw: string): string {
                     
 
                     if (key && value) {
-                        favorite[key] = numify(value)
+                        favorite[key] = value
                     }
                 })
             }

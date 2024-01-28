@@ -152,7 +152,7 @@ export default function processReport(raw) {
                         return;
                     }
                     if (key && value) {
-                        favorite[key] = numify(value);
+                        favorite[key] = value;
                     }
                 });
             }

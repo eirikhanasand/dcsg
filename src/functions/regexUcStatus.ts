@@ -89,6 +89,19 @@ export default function regexUcStatus(data: string) {
                 }
             }
 
+            if (line.includes('max bonus')) {
+                const regex = /(\d+(\.\d+)?)/;
+                const match = line.match(regex)
+            
+                if (match) {
+                    const number = match[0];
+                    status += `${parseFloat(number).toFixed(2)}\n`
+                    return
+                }
+            }
+
+
+
             if (line.includes('last check')) return
 
             if ((index < 4) || index === 8 || index > 15) {
