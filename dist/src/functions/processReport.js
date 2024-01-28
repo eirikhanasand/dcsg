@@ -139,6 +139,7 @@ export default function processReport(raw) {
                     }
                     if (key.includes('since last check')) {
                         favorite['Last check'] = `${numify(value)}s`;
+                        return;
                     }
                     if (value.includes('considered up')) {
                         const regex = /considered (\w+) and working, increasing 'time_up' to (\d+)/;

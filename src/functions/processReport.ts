@@ -168,6 +168,7 @@ export default function processReport(raw: string): string {
 
                     if (key.includes('since last check')) {
                         favorite['Last check'] = `${numify(value)}s`
+                        return
                     }
 
                     if (value.includes('considered up')) {
