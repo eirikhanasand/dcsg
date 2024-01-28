@@ -21,9 +21,7 @@ export default function regexUcStatus(data: string) {
                 }
             }
 
-            if (line.includes('Uptime streak '))
-
-            if (line.includes('earned')) {
+            if (line.includes('Kyrrecoins')) {
                 const regex = /(\d+(\.\d+)?)/;
                 const match = line.match(regex);
 
@@ -95,22 +93,14 @@ export default function regexUcStatus(data: string) {
             
                 if (match) {
                     const number = match[0];
-                    status += `${parseFloat(number).toFixed(2)}\n`
+                    status += `Bonus: ${parseFloat(number).toFixed(2)}\n`
                     return
                 }
             }
 
-
-
             if (line.includes('last check')) return
-
-            if ((index < 4) || index === 8 || index > 15) {
-                return
-            }
-
-            if (line == 'Report: ') {
-                return
-            }
+            if ((index < 4) || index === 8 || index > 15)  return
+            if (line == 'Report: ') return
 
             if (line) {
                 status += `${line}\n`

@@ -17,16 +17,15 @@ export default function regexUcStatus(data) {
                     return;
                 }
             }
-            if (line.includes('Uptime streak '))
-                if (line.includes('earned')) {
-                    const regex = /(\d+(\.\d+)?)/;
-                    const match = line.match(regex);
-                    if (match) {
-                        const integerValue = match[1];
-                        status += `Earned: ${parseFloat(integerValue).toFixed(2)} KC\n`;
-                        return;
-                    }
+            if (line.includes('Kyrrecoins')) {
+                const regex = /(\d+(\.\d+)?)/;
+                const match = line.match(regex);
+                if (match) {
+                    const integerValue = match[1];
+                    status += `Earned: ${parseFloat(integerValue).toFixed(2)} KC\n`;
+                    return;
                 }
+            }
             if (line.includes('KC')) {
                 const regex = /(\d+)/;
                 const match = line.match(regex);
@@ -77,18 +76,16 @@ export default function regexUcStatus(data) {
                 const match = line.match(regex);
                 if (match) {
                     const number = match[0];
-                    status += `${parseFloat(number).toFixed(2)}\n`;
+                    status += `Bonus: ${parseFloat(number).toFixed(2)}\n`;
                     return;
                 }
             }
             if (line.includes('last check'))
                 return;
-            if ((index < 4) || index === 8 || index > 15) {
+            if ((index < 4) || index === 8 || index > 15)
                 return;
-            }
-            if (line == 'Report: ') {
+            if (line == 'Report: ')
                 return;
-            }
             if (line) {
                 status += `${line}\n`;
             }

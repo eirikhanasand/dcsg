@@ -153,6 +153,8 @@ export default function processReport(raw: string): string {
                     if (key === 'Bonus') return
                     if (key.includes('images')) return
                     if (key.includes('streak')) return
+                    if (key.includes('frontpage')) return
+
                     if (key === 'streak_bonus') {
                         favorite.Streak = numify(value)
                         return
@@ -160,9 +162,6 @@ export default function processReport(raw: string): string {
 
                     if (key.includes('download')) {
                         favorite['Download time'] = `${numify(value)}s`
-                    }
-
-                    if (key.includes('frontpage')) {
                         return
                     }
 

@@ -127,14 +127,14 @@ export default function processReport(raw) {
                         return;
                     if (key.includes('streak'))
                         return;
+                    if (key.includes('frontpage'))
+                        return;
                     if (key === 'streak_bonus') {
                         favorite.Streak = numify(value);
                         return;
                     }
                     if (key.includes('download')) {
                         favorite['Download time'] = `${numify(value)}s`;
-                    }
-                    if (key.includes('frontpage')) {
                         return;
                     }
                     if (key.includes('since last check')) {
