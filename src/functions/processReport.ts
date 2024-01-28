@@ -25,6 +25,11 @@ export default function processReport(raw: string): string {
                 return
             }
 
+            if (key === 'frontpage_count') {
+                favorite.Users = numify(Values[index])
+                return
+            }
+
             if (key === 'request_rate_req/s') {
                 favorite['Req / s'] = numify(Values[index])
                 return
@@ -124,6 +129,12 @@ export default function processReport(raw: string): string {
 
             if (key === 'uptime_streak') {
                 favorite['Streak'] = `${Values[index]}s`
+                return
+            }
+
+            if (key === 'text_found' && !Values[index]) {
+                favorite['Text found'] = 'false'
+                return
             }
 
             if (key === 'result') {
@@ -144,14 +155,11 @@ export default function processReport(raw: string): string {
                     if (key.includes('streak')) return
                     if (key === 'streak_bonus') {
                         favorite.Streak = numify(value)
+                        return
                     }
 
                     if (key.includes('download')) {
                         favorite['Download time'] = `${numify(value)}s`
-                    }
-
-                    if (key === 'frontpage_count') {
-                        favorite.Users = numify(value)
                     }
 
                     if (key.includes('frontpage')) {
