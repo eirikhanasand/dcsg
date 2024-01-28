@@ -3,6 +3,8 @@ export const servers = [
     { name: 'db1', state: 0 }, 
     { name: 'ww1', state: 0 }, 
     { name: 'ww2', state: 0 }, 
+    { name: 'ww3', state: 0 }, 
+    { name: 'ww4', state: 0 }, 
     { name: 'balancer', state: 0 }
 ]
 
