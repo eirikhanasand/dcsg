@@ -8,8 +8,6 @@ import processReport from '../../functions/processReport.js'
 import alert from '../../functions/alert.js'
 import log from '../../functions/log.js'
 
-let channelID = ''
-let messageID = ''
 let activeIncident = false
 
 /**
@@ -25,8 +23,6 @@ export const data = new SlashCommandBuilder()
  */
 export async function execute(message: ChatInputCommandInteraction) {
     await message.reply("Fetching initial status...")
-    messageID = message.id
-    channelID = message.channelId
     monitor(message)
 }
 
@@ -40,70 +36,73 @@ function ping() {
     }
 }
 
-function spawn(index: number, service?: boolean) {
-    try {
-        const terminal = pty.spawn('bash', [], {
-            name: 'xterm-mono',
-            cols: 1000,
-            rows: 1000,
-            cwd: process.cwd(),
-            env: process.env,
-        })
-    
-        if (!terminal) {
-            console.error("Failed to start virtual terminal.")
+async function spawn(index: number, service?: boolean) {
+    return new Promise((resolve, reject) => {
+        try {
+            const terminal = pty.spawn('bash', [], {
+                name: 'xterm-color',
+                cols: 100,
+                rows: 100,
+                cwd: process.cwd(),
+                env: process.env,
+            })
+
+            if (terminal) {
+                if (service) {
+                    checkService(index, terminal)
+                    return
+                }
+
+                resolve(terminal)
+            }
+        } catch (error) {
+            console.log(`Failed to spawn terminal for ${service ? `service. ${index}` : `server ${index}.`}`)
+            reject(error)
         }
-    
-        if (service) {
-            checkService(index, terminal)
-            return
-        }
-    
-        check(index, terminal)
-    } catch (error) {
-        console.log(`Failed to spawn terminal for ${service ? `service. ${index}` : `server ${index}.`}`)
-        return undefined
-    }
+    })
 }
 
-function check(index: number, terminal: pty.IPty) {
-    const currentServer = servers[index]
-    
-    try {
+async function checkServers(count: number) {
+    for (let i = 0; i < servers.length; i++) {
+        const server = servers[i]
         let statusChecked = false
-    
-        terminal.write(`${config.connect}\r`)
-        
-        if (index) {
-            terminal.write(`${currentServer.name}\r`)
-        } else {
-            terminal.write(`systemctl is-active ${currentServer.name}.service\r`)
+        const terminal = await spawn(i) as pty.IPty
+
+        if (terminal) {
+            setTimeout(() => {
+                console.log('killed', server.name)
+                terminal.kill()
+
+                if (statusChecked) {
+                    if (server.state < 0) {
+                        server.state = 10
+                    } else {
+                        server.state += 10
+                    }
+                } else {
+                    if (server.state > 0) {
+                        server.state = -10
+                    } else {
+                        server.state -= 10
+                    }
+                }
+            }, 20000);
+
+            terminal.write(`${config.connect}\n`)
+            terminal.write(`ping -c ${count} ${server.ip}\n`)
+
+            terminal.onData((data) => {
+                if (data.includes('received')) {
+                    const regexPattern = /(\d+) received/;
+                
+                    const match = regexPattern.exec(data);
+                
+                    if (match) {
+                        statusChecked = true;
+                    }
+                }
+            })
         }
-    
-        terminal.onData((data) => {
-            if (!statusChecked && data.includes('Welcome to Ubuntu') || data.includes('inactive')) {
-                statusChecked = true
-            }
-        })
-    
-        setTimeout(() => {
-            terminal.kill()
-            if (statusChecked) {
-                if (currentServer.state < 0) {
-                    currentServer.state = 10
-                } else {
-                    currentServer.state += 10
-                }
-            } else {
-                if (currentServer.state > 0) {
-                    currentServer.state = -10
-                } else {
-                    currentServer.state -= 10
-                }
-            }
-        }, 8000)
-    } catch (error) {
-        console.log(`Failed to check ${currentServer.name}\n`)
     }
 }
 
@@ -113,13 +112,13 @@ function checkService(index: number, terminal: pty.IPty) {
     try {
         let post = ''
     
-        terminal.write(`${config.connect}\r`)
+        terminal.write(`${config.connect}\n`)
     
         if (service.host != 'manager') {
-            terminal.write(`${service.host}\r`)
+            terminal.write(`${service.host}\n`)
         }
     
-        terminal.write(`${service.service}\r`)
+        terminal.write(`${service.service}\n`)
     
         terminal.onData((data) => {
             post += data
@@ -207,6 +206,7 @@ async function post(message: ChatInputCommandInteraction) {
 
 async function monitor(message: ChatInputCommandInteraction) {
     while (true) {
+        checkServers(3)
         ping()
         await new Promise((r) => setTimeout(r, 10000))
         post(message)

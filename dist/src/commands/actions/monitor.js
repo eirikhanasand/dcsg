@@ -37,9 +37,9 @@ function ping() {
 function spawn(index, service) {
     try {
         const terminal = pty.spawn('bash', [], {
-            name: 'xterm-mono',
-            cols: 1000,
-            rows: 1000,
+            name: 'xterm-color',
+            cols: 200,
+            rows: 24,
             cwd: process.cwd(),
             env: process.env,
         });
@@ -61,14 +61,15 @@ function check(index, terminal) {
     const currentServer = servers[index];
     try {
         let statusChecked = false;
-        terminal.write(`${config.connect}\r`);
+        terminal.write(`${config.connect}\n`);
         if (index) {
-            terminal.write(`${currentServer.name}\r`);
+            terminal.write(`${currentServer.name}\n`);
         }
         else {
-            terminal.write(`systemctl is-active ${currentServer.name}.service\r`);
+            terminal.write(`systemctl is-active ${currentServer.name}.service\n`);
         }
         terminal.onData((data) => {
+            console.log("here", data);
             if (!statusChecked && data.includes('Welcome to Ubuntu') || data.includes('inactive')) {
                 statusChecked = true;
             }
@@ -101,11 +102,11 @@ function checkService(index, terminal) {
     const service = services[index];
     try {
         let post = '';
-        terminal.write(`${config.connect}\r`);
+        terminal.write(`${config.connect}\n`);
         if (service.host != 'manager') {
-            terminal.write(`${service.host}\r`);
+            terminal.write(`${service.host}\n`);
         }
-        terminal.write(`${service.service}\r`);
+        terminal.write(`${service.service}\n`);
         terminal.onData((data) => {
             post += data;
         });
