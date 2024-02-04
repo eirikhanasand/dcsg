@@ -6,7 +6,7 @@ export default async function alert(message: ChatInputCommandInteraction, embed:
 
     if (logChannel) {
         try {
-            // logChannel.send({content: '<@&1200463498598166559>', embeds: [embed]})
+            logChannel.send({content: '<@&1200463498598166559>', embeds: [embed]})
         } catch (error) {
             console.log("Failed to alert", error)
         }

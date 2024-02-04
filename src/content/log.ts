@@ -10,6 +10,6 @@ export const servers = [
 ]
 
 export const services = [
-    { host: "manager", service: "uc status", state: '' },
-    { host: "manager", service: "uc reports", state: '' }
+    { host: "manager", command: "uc status", state: '' },
+    { host: "manager", command: "uc reports", state: '' }
 ]

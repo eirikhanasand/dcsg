@@ -1,6 +1,6 @@
-import interestingFields from "../content/interestingFields.js"
-import keyFields from "../content/keyFields.js"
-import splitObject from "./splitObject.js"
+import interestingFields from "../../content/interestingFields.js"
+import keyFields from "../../content/keyFields.js"
+import splitObject from "../splitObject.js"
 
 const Keys = [] as string[]
 const Values = [] as string[]
