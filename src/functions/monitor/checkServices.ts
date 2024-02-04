@@ -27,10 +27,10 @@ export default async function checkServices() {
                         if (status != 'unknown') {
                             service.state = status
                         }
-
+                        
                         break
                     }
-
+                    
                     case 'uc reports': {
                         const report = processReport(post)
                     
