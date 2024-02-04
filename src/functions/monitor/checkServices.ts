@@ -8,7 +8,7 @@ import config from '../../../.config.js'
 export default async function checkServices() {
     for (let i = 0; i < services.length; i++) {
         const service = services[i]
-        const terminal = spawn(service.command) as pty.IPty
+        const terminal = spawn(service.command) as pty.IPty | null
         
         if (terminal) {
             let post = ''

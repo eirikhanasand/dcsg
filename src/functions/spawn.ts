@@ -13,12 +13,20 @@ export default function spawn(name: string) {
         if (terminal) {
             setTimeout(() => {
                 terminal.kill()
-            }, 20000)
+            }, 18000)
             
             return terminal
         }
-    } catch (error) {
-        console.log(`Failed to spawn terminal for ${name}`)
+    } catch (error: any) {
+        console.log(`Failed to spawn terminal for ${name}`, error)
+        if (error && error.code) {
+            console.error('Error code:', error.code);
+        }
+        if (error && error.message) {
+            console.error('Error message:', error.message);
+        }
+
+        console.log(Object.values(error))
         return null
     }
 }

@@ -22,7 +22,7 @@ async function monitor(message: ChatInputCommandInteraction) {
     while (true) {
         checkServers(3)
         checkServices()
-        await new Promise((r) => setTimeout(r, 10000))
+        await new Promise((r) => setTimeout(r, 20000))
         post(message)
     }
 }
