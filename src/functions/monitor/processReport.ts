@@ -182,6 +182,19 @@ export default function processReport(raw: string): string {
 
                         return
                     }
+
+                    if (value.includes('Calculated cost')) {
+                        const cost = /Calculated cost was (\d+\.\d+).*/;
+                        const match = value.match(cost);
+
+                        if (match) {
+                            const cost = parseFloat(match[1]);
+                            const formattedCost = cost.toFixed(2);
+                            favorite.Cost = `${formattedCost}`
+                        }
+                        
+                        return
+                    }
                     
 
                     if (key && value) {
