@@ -6,6 +6,7 @@ export const servers = [
     { name: 'db', ip: '192.168.131.219', state: 0 },
     { name: 'worker', ip: '192.168.132.22', state: 0 },
     { name: 'worker2', ip: '192.168.131.200', state: 0 },
+    { name: 'backup', ip: '192.168.128.228', state: 0 }
 ];
 export const services = [
     { host: "manager", command: "uc status", state: '' },

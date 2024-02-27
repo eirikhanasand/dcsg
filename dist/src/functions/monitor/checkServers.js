@@ -10,10 +10,10 @@ export default function checkServers(count) {
             setTimeout(() => {
                 if (serverIsUp) {
                     if (server.state < 0) {
-                        server.state = 20;
+                        server.state = 30;
                     }
                     else {
-                        server.state += 20;
+                        server.state += 30;
                     }
                 }
                 else {
@@ -21,7 +21,7 @@ export default function checkServers(count) {
                         server.state = 0;
                     }
                     else {
-                        server.state -= 20;
+                        server.state -= 30;
                     }
                 }
             }, 19000);
