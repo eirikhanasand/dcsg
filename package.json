@@ -16,6 +16,7 @@
         "fs": "^0.0.1-security",
         "git": "^0.1.5",
         "node-pty": "^1.0.0",
+        "os": "^0.1.2",
         "strip-ansi": "^7.1.0"
     },
     "devDependencies": {

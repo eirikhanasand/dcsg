@@ -2,6 +2,7 @@ import { SlashCommandBuilder } from 'discord.js';
 import pty from 'node-pty';
 import config from '../../../.config.js';
 import stripAnsi from 'strip-ansi';
+import os from 'os';
 let input = '';
 /**
  * Builds a new slash command with the given name, description and options
@@ -20,7 +21,8 @@ export async function execute(message) {
 }
 function spawn(message) {
     try {
-        const virtualTerminal = pty.spawn('bash', [], {
+        const shell = os.platform() === 'win32' ? 'powershell.exe' : 'bash';
+        const virtualTerminal = pty.spawn(shell, [], {
             name: 'xterm-color',
             cols: 2000,
             rows: 100,

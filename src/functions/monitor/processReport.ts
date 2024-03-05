@@ -192,7 +192,6 @@ export default function processReport(raw: string): string {
                             const formattedCost = cost.toFixed(2);
                             favorite.Cost = `${formattedCost}`
                         }
-                        
                         return
                     }
                     

@@ -1,8 +1,7 @@
 FROM node:20-alpine
 
 # Install system dependencies
-RUN apk add --no-cache python3 make g++
-RUN sudo apt-get install build-essential
+RUN apk add --no-cache python3 make g++ build-base
 
 # Set the working directory
 WORKDIR /usr/src/app

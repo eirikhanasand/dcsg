@@ -2,6 +2,7 @@ import { ChatInputCommandInteraction, Message, SlashCommandBuilder } from 'disco
 import pty from 'node-pty'
 import config from '../../../.config.js'
 import stripAnsi from 'strip-ansi'
+import os from 'os'
 
 let input = ''
 /**
@@ -24,7 +25,9 @@ export async function execute(message: ChatInputCommandInteraction) {
 
 function spawn(message: ChatInputCommandInteraction) {
     try {
-        const virtualTerminal = pty.spawn('bash', [], {
+        const shell = os.platform() === 'win32' ? 'powershell.exe' : 'bash';
+
+        const virtualTerminal = pty.spawn(shell, [], {
             name: 'xterm-color',
             cols: 2000,
             rows: 100,
