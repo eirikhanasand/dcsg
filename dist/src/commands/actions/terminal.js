@@ -32,7 +32,9 @@ function spawn(message) {
         if (!virtualTerminal) {
             message.editReply("Failed to start virtual terminal.");
         }
-        virtualTerminal.write(config.connect + '\r');
+        if (!prod) {
+            virtualTerminal.write(config.connect + '\r');
+        }
         virtualTerminal.onData((data) => {
             const cleanData = stripAnsiEscapeCodes(data);
             if (cleanData.trim().length && cleanData != input) {

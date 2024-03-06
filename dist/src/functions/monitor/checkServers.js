@@ -25,7 +25,9 @@ export default function checkServers(count) {
                     }
                 }
             }, 19000);
-            terminal.write(config.connect);
+            if (!prod) {
+                terminal.write(config.connect);
+            }
             terminal.write(`ping -c ${count} ${server.ip}\n`);
             terminal.onData((data) => {
                 if (data.includes('received')) {

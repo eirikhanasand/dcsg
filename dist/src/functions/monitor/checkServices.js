@@ -9,7 +9,9 @@ export default async function checkServices() {
         const terminal = spawn(service.command);
         if (terminal) {
             let post = '';
-            terminal.write(config.connect);
+            if (!prod) {
+                terminal.write(config.connect);
+            }
             terminal.write(`${service.command}\n`);
             terminal.onData((data) => {
                 post += data;

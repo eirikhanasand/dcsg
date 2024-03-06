@@ -2,6 +2,8 @@ import { Client, Events, GatewayIntentBits } from 'discord.js';
 import config from '../.config.js';
 import getCommands from './commands.js';
 const token = config.token;
+// Set to false when not in prod
+globalThis.prod = false;
 const client = new Client({ intents: [
         GatewayIntentBits.Guilds,
         GatewayIntentBits.GuildMessages,
