@@ -1,3 +1,5 @@
+declare var prod: boolean 
+
 type RestData = {
     id: string
     application_id: string

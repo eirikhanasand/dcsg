@@ -39,7 +39,9 @@ function spawn(message: ChatInputCommandInteraction) {
             message.editReply("Failed to start virtual terminal.")
         }
     
-        virtualTerminal.write(config.connect + '\r')
+        if (!prod) {
+            virtualTerminal.write(config.connect + '\r')
+        }
     
         virtualTerminal.onData((data) => {
             const cleanData = stripAnsiEscapeCodes(data)
