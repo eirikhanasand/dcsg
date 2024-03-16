@@ -8,7 +8,7 @@ export default function overAllStatus() {
         return false;
     if (report.toLowerCase().includes('page is considered down'))
         return false;
-    if (server.upCount < server.total)
+    if (server.upCount < server.total - 1)
         return false;
     return true;
 }
